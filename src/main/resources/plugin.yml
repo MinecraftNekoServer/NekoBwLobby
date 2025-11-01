@@ -1,6 +1,11 @@
 name: NekoBwLobby
 version: '1.0-SNAPSHOT'
 main: neko.nekoBwLobby.NekoBwLobby
-api-version: '1.18'
+api-version: '1.12'
 authors: [ 不穿胖次の小奶猫 ]
 website: https://cnmsb.xin/
+
+commands:
+  gameinfo:
+    description: 查看起床战争游戏数据
+    usage: /gameinfo
