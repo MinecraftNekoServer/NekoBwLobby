@@ -20,11 +20,14 @@ public class GameInfoGUI {
         // 添加装饰性边框
         addDecoration(gui);
         
-        // 获取玩家数据
+        // 每次都直接从数据库获取最新的玩家数据，不使用任何缓存
+        player.sendMessage("§8[§b起床战争§8] §7正在获取您的游戏数据...");
         Map<String, Object> stats = databaseManager.getPlayerStats(player.getName());
         
         // 创建显示玩家数据的物品
         if (!stats.isEmpty()) {
+            player.sendMessage("§8[§b起床战争§8] §a成功获取到您的游戏数据!");
+            
             // 添加玩家头像 (1.12.2兼容版本)
             ItemStack playerHead = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
             ItemMeta headMeta = playerHead.getItemMeta();
@@ -105,6 +108,8 @@ public class GameInfoGUI {
             deathsItem.setItemMeta(deathsMeta);
             gui.setItem(15, deathsItem);
         } else {
+            player.sendMessage("§8[§b起床战争§8] §c未找到您的游戏数据!");
+            
             // 没有找到玩家数据时显示的物品
             ItemStack noDataItem = new ItemStack(Material.BARRIER);
             ItemMeta noDataMeta = noDataItem.getItemMeta();
