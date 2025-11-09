@@ -193,6 +193,138 @@ public class DatabaseManager {
         return topPlayers;
     }
 
+    /**
+     * 获取击杀数排行榜数据
+     * @param limit 获取前N名玩家
+     * @return 排行榜数据列表，包含玩家名和击杀数
+     */
+    public java.util.List<java.util.Map<String, Object>> getTopKills(int limit) {
+        java.util.List<java.util.Map<String, Object>> topPlayers = new java.util.ArrayList<>();
+        Connection tempConnection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        
+        try {
+            // 创建临时连接（带重试机制）
+            tempConnection = createConnectionWithRetry(3);
+            
+            statement = tempConnection.prepareStatement(
+                "SELECT name, kills FROM bw_stats_players ORDER BY kills DESC LIMIT ?"
+            );
+            statement.setInt(1, limit);
+            rs = statement.executeQuery();
+            
+            while (rs.next()) {
+                java.util.Map<String, Object> playerData = new java.util.HashMap<>();
+                playerData.put("name", rs.getString("name"));
+                playerData.put("kills", rs.getInt("kills"));
+                topPlayers.add(playerData);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取击杀数排行榜数据失败: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // 关闭所有资源
+            try {
+                if (rs != null) rs.close();
+                if (statement != null) statement.close();
+                if (tempConnection != null) tempConnection.close();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("关闭数据库资源时出错: " + e.getMessage());
+            }
+        }
+        
+        return topPlayers;
+    }
+
+    /**
+     * 获取挖床数排行榜数据
+     * @param limit 获取前N名玩家
+     * @return 排行榜数据列表，包含玩家名和挖床数
+     */
+    public java.util.List<java.util.Map<String, Object>> getTopDestroyedBeds(int limit) {
+        java.util.List<java.util.Map<String, Object>> topPlayers = new java.util.ArrayList<>();
+        Connection tempConnection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        
+        try {
+            // 创建临时连接（带重试机制）
+            tempConnection = createConnectionWithRetry(3);
+            
+            statement = tempConnection.prepareStatement(
+                "SELECT name, destroyedBeds FROM bw_stats_players ORDER BY destroyedBeds DESC LIMIT ?"
+            );
+            statement.setInt(1, limit);
+            rs = statement.executeQuery();
+            
+            while (rs.next()) {
+                java.util.Map<String, Object> playerData = new java.util.HashMap<>();
+                playerData.put("name", rs.getString("name"));
+                playerData.put("destroyedBeds", rs.getInt("destroyedBeds"));
+                topPlayers.add(playerData);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取挖床数排行榜数据失败: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // 关闭所有资源
+            try {
+                if (rs != null) rs.close();
+                if (statement != null) statement.close();
+                if (tempConnection != null) tempConnection.close();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("关闭数据库资源时出错: " + e.getMessage());
+            }
+        }
+        
+        return topPlayers;
+    }
+
+    /**
+     * 获取死亡数排行榜数据
+     * @param limit 获取前N名玩家
+     * @return 排行榜数据列表，包含玩家名和死亡数
+     */
+    public java.util.List<java.util.Map<String, Object>> getTopDeaths(int limit) {
+        java.util.List<java.util.Map<String, Object>> topPlayers = new java.util.ArrayList<>();
+        Connection tempConnection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        
+        try {
+            // 创建临时连接（带重试机制）
+            tempConnection = createConnectionWithRetry(3);
+            
+            statement = tempConnection.prepareStatement(
+                "SELECT name, deaths FROM bw_stats_players ORDER BY deaths DESC LIMIT ?"
+            );
+            statement.setInt(1, limit);
+            rs = statement.executeQuery();
+            
+            while (rs.next()) {
+                java.util.Map<String, Object> playerData = new java.util.HashMap<>();
+                playerData.put("name", rs.getString("name"));
+                playerData.put("deaths", rs.getInt("deaths"));
+                topPlayers.add(playerData);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取死亡数排行榜数据失败: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // 关闭所有资源
+            try {
+                if (rs != null) rs.close();
+                if (statement != null) statement.close();
+                if (tempConnection != null) tempConnection.close();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("关闭数据库资源时出错: " + e.getMessage());
+            }
+        }
+        
+        return topPlayers;
+    }
+
     public void close() {
         // 不再需要关闭持久连接，因为使用的是临时连接
         plugin.getLogger().info("数据库管理器已关闭");

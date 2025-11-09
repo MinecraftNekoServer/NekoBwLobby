@@ -11,4 +11,10 @@ commands:
     usage: /gameinfo
   addtop:
     description: 设置起床战争排行榜悬浮字的位置
-    usage: /addtop <name>
+    usage: /addtop <name>
+  removetop:
+    description: 删除指定名称的排行榜悬浮字
+    usage: /removetop <name>
+  addinteractivetop:
+    description: 创建可交互的排行榜悬浮字，支持点击翻页
+    usage: /addinteractivetop <name>
