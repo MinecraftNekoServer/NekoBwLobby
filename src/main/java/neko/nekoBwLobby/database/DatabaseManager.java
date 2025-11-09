@@ -149,8 +149,52 @@ public class DatabaseManager {
         }
     }
     
-    public void close() {
-        // 不再需要关闭持久连接，因为使用的是临时连接
-        plugin.getLogger().info("数据库管理器已关闭");
-    }
+    /**
+     * 获取排行榜数据
+     * @param limit 获取前N名玩家
+     * @return 排行榜数据列表，包含玩家名和分数
+     */
+    public java.util.List<java.util.Map<String, Object>> getTopPlayers(int limit) {
+        java.util.List<java.util.Map<String, Object>> topPlayers = new java.util.ArrayList<>();
+        Connection tempConnection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        
+        try {
+            // 创建临时连接（带重试机制）
+            tempConnection = createConnectionWithRetry(3);
+            
+            statement = tempConnection.prepareStatement(
+                "SELECT name, score FROM bw_stats_players ORDER BY score DESC LIMIT ?"
+            );
+            statement.setInt(1, limit);
+            rs = statement.executeQuery();
+            
+            while (rs.next()) {
+                java.util.Map<String, Object> playerData = new java.util.HashMap<>();
+                playerData.put("name", rs.getString("name"));
+                playerData.put("score", rs.getInt("score"));
+                topPlayers.add(playerData);
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("获取排行榜数据失败: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // 关闭所有资源
+            try {
+                if (rs != null) rs.close();
+                if (statement != null) statement.close();
+                if (tempConnection != null) tempConnection.close();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("关闭数据库资源时出错: " + e.getMessage());
+            }
+        }
+        
+        return topPlayers;
+    }
+
+    public void close() {
+        // 不再需要关闭持久连接，因为使用的是临时连接
+        plugin.getLogger().info("数据库管理器已关闭");
+    }
 }

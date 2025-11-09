@@ -1,6 +1,7 @@
 package neko.nekoBwLobby;
 
 import neko.nekoBwLobby.commands.GameInfoCommand;
+import neko.nekoBwLobby.commands.AddTopCommand;
 import neko.nekoBwLobby.database.DatabaseManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -9,24 +10,45 @@ public final class NekoBwLobby extends JavaPlugin {
     private DatabaseManager databaseManager;
 
     @Override
+
     public void onEnable() {
+
         // Plugin startup logic
+
         saveDefaultConfig();
+
         databaseManager = new DatabaseManager(this);
 
+
+
         // 检查数据库连接
+
         if (databaseManager.isConnectionValid()) {
+
             getLogger().info("数据库连接正常");
+
         } else {
+
             getLogger().severe("数据库连接异常，请检查配置文件");
+
         }
+
         // 注册指令
+
         getCommand("gameinfo").setExecutor(new GameInfoCommand(this, databaseManager));
+
+        getCommand("addtop").setExecutor(new AddTopCommand(this, databaseManager));
+
         getLogger().info("NekoBwLobby 插件已启用!");
+
     }
 
+
+
     @Override
+
     public void onDisable() {
+
         // Plugin shutdown logic
         if (databaseManager != null) {
             databaseManager.close();
@@ -35,6 +57,9 @@ public final class NekoBwLobby extends JavaPlugin {
     }
 
     public DatabaseManager getDatabaseManager() {
+
         return databaseManager;
+
     }
+
 }

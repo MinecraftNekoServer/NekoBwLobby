@@ -5,3 +5,7 @@ database:
   username: "root"
   password: "wcjs123"
   useSSL: false
+
+# 排行榜悬浮字位置配置
+# 格式: top-locations.<name>.<world|x|y|z>
+top-locations: {}
