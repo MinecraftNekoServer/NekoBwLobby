@@ -1,9 +1,10 @@
-name: NekoBwLobby
-version: '1.0-SNAPSHOT'
-main: neko.nekoBwLobby.NekoBwLobby
-api-version: '1.12'
-authors: [ 不穿胖次の小奶猫 ]
-website: https://cnmsb.xin/
+name: NekoBwLobby
+version: '1.0-SNAPSHOT'
+main: neko.nekoBwLobby.NekoBwLobby
+api-version: '1.12'
+authors: [ 不穿胖次の小奶猫 ]
+website: https://cnmsb.xin/
+depend: [HolographicDisplays]
 
 commands:
   gameinfo:

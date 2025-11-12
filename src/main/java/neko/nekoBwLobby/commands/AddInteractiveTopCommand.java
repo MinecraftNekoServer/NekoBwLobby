@@ -19,12 +19,19 @@ import neko.nekoBwLobby.database.DatabaseManager;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class AddInteractiveTopCommand implements CommandExecutor {
     
     private final NekoBwLobby plugin;
     private final DatabaseManager databaseManager;
+    
+    // 为每个玩家存储排行榜类型状态，不持久化
+    private final Map<String, Map<String, TopType>> playerTopTypes = new HashMap<>();
+    
+    // 存储每个排行榜的盔甲架信息
+    private final Map<String, TopArmorStands> topArmorStandsMap = new HashMap<>();
     
     // 排行榜类型枚举
     public enum TopType {
@@ -42,6 +49,13 @@ public class AddInteractiveTopCommand implements CommandExecutor {
         public String getDisplayName() {
             return displayName;
         }
+    }
+    
+    // 存储排行榜盔甲架的类
+    private static class TopArmorStands {
+        ArmorStand titleStand;
+        ArmorStand hintStand;
+        ArmorStand[] rankStands = new ArmorStand[10];
     }
     
     public AddInteractiveTopCommand(NekoBwLobby plugin, DatabaseManager databaseManager) {
@@ -81,16 +95,13 @@ public class AddInteractiveTopCommand implements CommandExecutor {
         player.sendMessage("§a位置: " + location.getWorld().getName() + ", " + 
                           String.format("%.2f, %.2f, %.2f", location.getX(), location.getY(), location.getZ()));
         
-        // 获取排行榜数据并创建悬浮文字
-        createInteractiveFloatingText(location, topName, TopType.SCORE);
+        // 获取排行榜数据并创建悬浮文字（默认为SCORE类型）
+        createInteractiveFloatingText(location, topName);
         
         return true;
     }
     
-    private void createInteractiveFloatingText(Location location, String topName, TopType topType) {
-        // 获取排行榜数据
-        List<Map<String, Object>> topPlayersData = getTopPlayersData(topType, 10);
-        
+    private void createInteractiveFloatingText(Location location, String topName) {
         // 创建一个盔甲架作为标题
         World world = location.getWorld();
         if (world == null) {
@@ -98,52 +109,84 @@ public class AddInteractiveTopCommand implements CommandExecutor {
             return;
         }
         
-        List<String> armorStandIds = new ArrayList<>();
+        // 获取或创建盔甲架容器
+        TopArmorStands armorStands = topArmorStandsMap.computeIfAbsent(topName, k -> new TopArmorStands());
         
         // 创建标题盔甲架
         Location titleLocation = location.clone().add(0, 3.0, 0); // 标题在上方
-        ArmorStand titleStand = (ArmorStand) world.spawnEntity(titleLocation, EntityType.ARMOR_STAND);
-        titleStand.setCustomName("§6=== " + topType.getDisplayName() + "排行榜 ===");
-        titleStand.setCustomNameVisible(true);
-        titleStand.setGravity(false);
-        titleStand.setInvulnerable(true);
-        titleStand.setVisible(false);
-        armorStandIds.add(titleStand.getUniqueId().toString());
+        if (armorStands.titleStand == null || !armorStands.titleStand.isValid()) {
+            armorStands.titleStand = (ArmorStand) world.spawnEntity(titleLocation, EntityType.ARMOR_STAND);
+            armorStands.titleStand.setCustomName("§6=== " + TopType.SCORE.getDisplayName() + "排行榜 ===");
+            armorStands.titleStand.setCustomNameVisible(true);
+            armorStands.titleStand.setGravity(false);
+            armorStands.titleStand.setInvulnerable(true);
+            armorStands.titleStand.setVisible(false);
+            armorStands.titleStand.setMarker(true); // 设置为标记，使其更容易被点击
+        }
         
         // 创建提示信息盔甲架（说明如何切换排行榜）
         Location hintLocation = location.clone().add(0, 2.7, 0);
-        ArmorStand hintStand = (ArmorStand) world.spawnEntity(hintLocation, EntityType.ARMOR_STAND);
-        hintStand.setCustomName("§7点击切换排行榜类型");
-        hintStand.setCustomNameVisible(true);
-        hintStand.setGravity(false);
-        hintStand.setInvulnerable(true);
-        hintStand.setVisible(false);
-        hintStand.setMarker(true); // 设置为标记，使其更容易被点击
-        armorStandIds.add(hintStand.getUniqueId().toString());
-        
-        // 创建每个排名的盔甲架
-        for (int i = 0; i < topPlayersData.size(); i++) {
-            Map<String, Object> playerData = topPlayersData.get(i);
-            String playerName = (String) playerData.get("name");
-            Object value = playerData.get(getValueKey(topType));
-            
-            // 每个盔甲架位置稍微向下
-            Location armorStandLocation = location.clone().add(0, 2.5 - (i * 0.3), 0);
-            ArmorStand armorStand = (ArmorStand) world.spawnEntity(armorStandLocation, EntityType.ARMOR_STAND);
-            armorStand.setCustomName("§e" + (i + 1) + ". " + playerName + " - " + value);
-            armorStand.setCustomNameVisible(true);
-            armorStand.setGravity(false);
-            armorStand.setInvulnerable(true);
-            armorStand.setVisible(false); // 不显示盔甲架本身，只显示名字
-            armorStandIds.add(armorStand.getUniqueId().toString());
+        if (armorStands.hintStand == null || !armorStands.hintStand.isValid()) {
+            armorStands.hintStand = (ArmorStand) world.spawnEntity(hintLocation, EntityType.ARMOR_STAND);
+            armorStands.hintStand.setCustomName("§7点击切换排行榜类型 [TOP:" + topName + "]"); // 添加特殊标识
+            armorStands.hintStand.setCustomNameVisible(true);
+            armorStands.hintStand.setGravity(false);
+            armorStands.hintStand.setInvulnerable(true);
+            armorStands.hintStand.setVisible(false);
+            armorStands.hintStand.setMarker(true); // 设置为标记，使其更容易被点击
         }
         
-        // 保存盔甲架ID和当前类型到配置文件中
-        String armorStandKey = "top-locations." + topName + ".armor-stand-ids";
-        String currentTypeKey = "top-locations." + topName + ".current-type";
-        plugin.getConfig().set(armorStandKey, armorStandIds);
-        plugin.getConfig().set(currentTypeKey, topType.name());
-        plugin.saveConfig();
+        // 创建每个排名的盔甲架
+        for (int i = 0; i < 10; i++) {
+            Location armorStandLocation = location.clone().add(0, 2.5 - (i * 0.3), 0);
+            if (armorStands.rankStands[i] == null || !armorStands.rankStands[i].isValid()) {
+                armorStands.rankStands[i] = (ArmorStand) world.spawnEntity(armorStandLocation, EntityType.ARMOR_STAND);
+                armorStands.rankStands[i].setCustomName("§e" + (i + 1) + ". " + "加载中..." + " [TOP:" + topName + "]"); // 添加特殊标识
+                armorStands.rankStands[i].setCustomNameVisible(true);
+                armorStands.rankStands[i].setGravity(false);
+                armorStands.rankStands[i].setInvulnerable(true);
+                armorStands.rankStands[i].setVisible(false); // 不显示盔甲架本身，只显示名字
+                armorStands.rankStands[i].setMarker(true); // 设为marker，便于点击
+            }
+        }
+        
+        // 为所有在线玩家更新显示内容
+        updateAllPlayersDisplay(topName);
+    }
+    
+    // 为所有在线玩家更新显示内容
+    private void updateAllPlayersDisplay(String topName) {
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            updateArmorStandTextForPlayer(topName, player);
+        }
+    }
+    
+    // 为指定玩家更新盔甲架文本
+    private void updateArmorStandTextForPlayer(String topName, Player player) {
+        TopArmorStands armorStands = topArmorStandsMap.get(topName);
+        if (armorStands == null) return;
+        
+        TopType topType = getPlayerTopType(player, topName);
+        List<Map<String, Object>> topPlayersData = getTopPlayersData(topType, 10);
+        
+        // 更新标题盔甲架
+        if (armorStands.titleStand != null && armorStands.titleStand.isValid()) {
+            armorStands.titleStand.setCustomName("§6=== " + topType.getDisplayName() + "排行榜 ===");
+        }
+        
+        // 更新每个排名的盔甲架
+        for (int i = 0; i < 10; i++) {
+            if (armorStands.rankStands[i] != null && armorStands.rankStands[i].isValid()) {
+                if (i < topPlayersData.size()) {
+                    Map<String, Object> playerData = topPlayersData.get(i);
+                    String playerName = (String) playerData.get("name");
+                    Object value = playerData.get(getValueKey(topType));
+                    armorStands.rankStands[i].setCustomName("§e" + (i + 1) + ". " + playerName + " - " + value + " [TOP:" + topName + "]");
+                } else {
+                    armorStands.rankStands[i].setCustomName("§e" + (i + 1) + ". " + "无数据" + " [TOP:" + topName + "]");
+                }
+            }
+        }
     }
     
     private List<Map<String, Object>> getTopPlayersData(TopType topType, int limit) {
@@ -174,18 +217,10 @@ public class AddInteractiveTopCommand implements CommandExecutor {
         }
     }
     
-    // 切换排行榜类型的方法
-    public void switchTopType(String topName, Location location) {
-        // 获取当前类型
-        String currentTypeKey = "top-locations." + topName + ".current-type";
-        String currentTypeName = plugin.getConfig().getString(currentTypeKey, "SCORE");
-        
-        TopType currentType;
-        try {
-            currentType = TopType.valueOf(currentTypeName);
-        } catch (IllegalArgumentException e) {
-            currentType = TopType.SCORE; // 默认为分数排行榜
-        }
+    // 为指定玩家切换排行榜类型的方法
+    public void switchTopTypeForPlayer(String topName, Player player) {
+        // 获取玩家当前类型
+        TopType currentType = getPlayerTopType(player, topName);
         
         // 计算下一个类型
         TopType nextType;
@@ -206,11 +241,38 @@ public class AddInteractiveTopCommand implements CommandExecutor {
                 nextType = TopType.SCORE;
         }
         
-        // 删除现有的盔甲架
-        removeFloatingText(topName);
+        // 更新玩家的排行榜类型
+        String playerUUID = player.getUniqueId().toString();
+        playerTopTypes.computeIfAbsent(playerUUID, k -> new HashMap<>()).put(topName, nextType);
         
-        // 创建新的盔甲架
-        createInteractiveFloatingText(location, topName, nextType);
+        // 为玩家更新显示内容
+        updateArmorStandTextForPlayer(topName, player);
+        
+        // 发送消息给玩家
+        player.sendMessage("§a已切换排行榜类型到: " + nextType.getDisplayName());
+    }
+    
+    // 获取玩家的排行榜类型
+    private TopType getPlayerTopType(Player player, String topName) {
+        Map<String, TopType> playerTypes = playerTopTypes.get(player.getUniqueId().toString());
+        if (playerTypes != null) {
+            TopType type = playerTypes.get(topName);
+            if (type != null) {
+                return type;
+            }
+        }
+        // 默认为分数排行榜
+        return TopType.SCORE;
+    }
+
+    // 检查盔甲架是否属于指定的排行榜（用于监听器中识别盔甲架）
+    public boolean isArmorStandOfTop(String topName, ArmorStand clickedArmorStand) {
+        // 检查盔甲架名称是否包含指定的topName标识
+        String customName = clickedArmorStand.getCustomName();
+        if (customName != null) {
+            return customName.contains("[TOP:" + topName + "]");
+        }
+        return false;
     }
     
     // 提供一个公共方法来获取数据库管理器
@@ -218,32 +280,13 @@ public class AddInteractiveTopCommand implements CommandExecutor {
         return databaseManager;
     }
     
-    private void removeFloatingText(String topName) {
-        // 获取盔甲架ID列表
-        String armorStandKey = "top-locations." + topName + ".armor-stand-ids";
-        if (plugin.getConfig().contains(armorStandKey)) {
-            List<String> armorStandIds = plugin.getConfig().getStringList(armorStandKey);
-            
-            // 删除每个盔甲架
-            for (String uuidStr : armorStandIds) {
-                try {
-                    UUID uuid = UUID.fromString(uuidStr);
-                    World world = plugin.getServer().getWorld(plugin.getConfig().getString("top-locations." + topName + ".world"));
-                    if (world != null) {
-                        for (org.bukkit.entity.Entity entity : world.getEntities()) {
-                            if (entity.getUniqueId().equals(uuid) && entity instanceof ArmorStand) {
-                                entity.remove();
-                                break;
-                            }
-                        }
-                    }
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("无效的UUID: " + uuidStr);
-                }
-            }
-            
-            // 清除配置中的盔甲架ID
-            plugin.getConfig().set(armorStandKey, null);
-        }
+    // 获取玩家的当前类型（公共方法）
+    public TopType getPlayerCurrentType(Player player, String topName) {
+        return getPlayerTopType(player, topName);
+    }
+    
+    // 获取排行榜盔甲架
+    public TopArmorStands getTopArmorStands(String topName) {
+        return topArmorStandsMap.get(topName);
     }
 }

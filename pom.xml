@@ -65,5 +65,22 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/spigot-1.12.2.jar</systemPath>
         </dependency>
+        
+        <!-- HolographicDisplays API dependency -->
+        <dependency>
+            <groupId>com.gmail.filoghost.holographicdisplays</groupId>
+            <artifactId>holographicdisplays-api</artifactId>
+            <version>2.1.7</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/HolographicDisplaysAPI_v2.1.7.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>de.inventivegames.hologram</groupId>
+            <artifactId>hologramapi</artifactId>
+            <version>1.6.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/HologramAPI_v1.6.2.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>
