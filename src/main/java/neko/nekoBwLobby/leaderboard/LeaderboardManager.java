@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,17 +14,59 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LeaderboardManager {
     
     private final NekoBwLobby plugin;
+
     private final DatabaseManager databaseManager;
+
+    private LeaderboardListener listener;
+
     
+
     // 存储所有排行榜
+
     private final Map<String, Leaderboard> leaderboards = new HashMap<>();
+
     
+
     // 存储每个玩家的排行榜偏好
+
     private final Map<UUID, Map<String, LeaderboardType>> playerPreferences = new ConcurrentHashMap<>();
     
     public LeaderboardManager(NekoBwLobby plugin, DatabaseManager databaseManager) {
+
         this.plugin = plugin;
+
         this.databaseManager = databaseManager;
+
+        this.listener = new LeaderboardListener(this); // 初始化listener
+
+        
+
+        // 启动自动刷新任务，每10秒刷新一次
+
+        startAutoRefreshTask();
+
+    }
+
+    
+
+    private void startAutoRefreshTask() {
+
+        new BukkitRunnable() {
+
+            @Override
+
+            public void run() {
+
+                for (Leaderboard board : leaderboards.values()) {
+
+                    board.updateForAllPlayers();
+
+                }
+
+            }
+
+        }.runTaskTimerAsynchronously(plugin, 200L, 200L); // 200 ticks = 10秒
+
     }
     
     public void createLeaderboard(String name, Location location, LeaderboardType type, boolean isSwitchable) {
@@ -96,11 +139,25 @@ public class LeaderboardManager {
     }
     
     public Map<String, Leaderboard> getLeaderboards() {
+
         return leaderboards;
+
     }
+
     
+
     public DatabaseManager getDatabaseManager() {
+
         return databaseManager;
+
+    }
+
+    
+
+    public LeaderboardListener getListener() {
+
+        return listener;
+
     }
     
     public void saveToConfig() {
