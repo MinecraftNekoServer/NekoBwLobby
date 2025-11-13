@@ -175,27 +175,31 @@ public class LeaderboardManager {
         plugin.saveConfig();
     }
     
-    public void loadFromConfig() {
-        // 从配置文件加载排行榜
-        if (plugin.getConfig().contains("leaderboards.boards")) {
-            for (String name : plugin.getConfig().getConfigurationSection("leaderboards.boards").getKeys(false)) {
-                String path = "leaderboards.boards." + name;
-                String worldName = plugin.getConfig().getString(path + ".world");
-                double x = plugin.getConfig().getDouble(path + ".x");
-                double y = plugin.getConfig().getDouble(path + ".y");
-                double z = plugin.getConfig().getDouble(path + ".z");
-                String typeStr = plugin.getConfig().getString(path + ".type", "SCORE");
-                boolean switchable = plugin.getConfig().getBoolean(path + ".switchable", true);
-                
-                World world = Bukkit.getWorld(worldName);
-                if (world != null) {
-                    Location location = new Location(world, x, y, z);
-                    LeaderboardType type = LeaderboardType.valueOf(typeStr);
-                    Leaderboard leaderboard = new Leaderboard(name, location, this, type, switchable);
-                    leaderboards.put(name, leaderboard);
-                    leaderboard.spawn();
-                }
-            }
-        }
+    public void loadFromConfig() {
+        // 从配置文件加载排行榜
+        if (plugin.getConfig().contains("leaderboards.boards")) {
+            for (String name : plugin.getConfig().getConfigurationSection("leaderboards.boards").getKeys(false)) {
+                String path = "leaderboards.boards." + name;
+                String worldName = plugin.getConfig().getString(path + ".world");
+                double x = plugin.getConfig().getDouble(path + ".x");
+                double y = plugin.getConfig().getDouble(path + ".y");
+                double z = plugin.getConfig().getDouble(path + ".z");
+                String typeStr = plugin.getConfig().getString(path + ".type", "SCORE");
+                boolean switchable = plugin.getConfig().getBoolean(path + ".switchable", true);
+                
+                World world = Bukkit.getWorld(worldName);
+                if (world != null) {
+                    Location location = new Location(world, x, y, z);
+                    LeaderboardType type = LeaderboardType.valueOf(typeStr);
+                    Leaderboard leaderboard = new Leaderboard(name, location, this, type, switchable);
+                    leaderboards.put(name, leaderboard);
+                    leaderboard.spawn();
+                }
+            }
+        }
+    }
+    
+    public NekoBwLobby getPlugin() {
+        return plugin;
     }
 }
