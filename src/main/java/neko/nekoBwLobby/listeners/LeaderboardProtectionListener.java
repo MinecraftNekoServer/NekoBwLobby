@@ -1,8 +1,5 @@
 package neko.nekoBwLobby.listeners;
 
-import neko.nekoBwLobby.leaderboard.LeaderboardManager;
-import neko.nekoBwLobby.NekoBwLobby;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -14,12 +11,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 
 public class LeaderboardProtectionListener implements Listener {
-    
-    private final LeaderboardManager leaderboardManager;
-    
-    public LeaderboardProtectionListener(LeaderboardManager leaderboardManager) {
-        this.leaderboardManager = leaderboardManager;
-    }
+
     
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {

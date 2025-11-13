@@ -1,1 +1,1 @@
-database:  host: "localhost"  port: 3306  name: "nekobedwars"  username: "root"  password: "wcjs123"  useSSL: false# 排行榜配置leaderboards:  # 排行榜设置  settings:    # 更新间隔（秒）    update-interval: 300    # 显示的玩家数量    display-limit: 10  # 排行榜列表  boards: {}  
+database:  host: "localhost"  port: 3306  name: "nekobedwars"  username: "root"  password: "wcjs123"  useSSL: false  

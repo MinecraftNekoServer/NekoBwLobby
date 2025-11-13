@@ -1,21 +1,22 @@
-name: NekoBwLobby
-version: '1.0-SNAPSHOT'
-main: neko.nekoBwLobby.NekoBwLobby
-api-version: '1.12'
-authors: [ 不穿胖次の小奶猫 ]
-website: https://cnmsb.xin/
+name: NekoBwLobby
+
+version: '1.0-SNAPSHOT'
+
+main: neko.nekoBwLobby.NekoBwLobby
+
+api-version: '1.12'
+
+authors: [ 不穿胖次の小奶猫 ]
+
+website: https://cnmsb.xin/
+
 depend: [HolographicDisplays]
 
-commands:
-  gameinfo:
-    description: 查看起床战争游戏数据
-    usage: /gameinfo
-  addtop:
-    description: 设置起床战争排行榜悬浮字的位置
-    usage: /addtop <name>
-  removetop:
-    description: 删除指定名称的排行榜悬浮字
-    usage: /removetop <name>
-  addinteractivetop:
-    description: 创建可交互的排行榜悬浮字，支持点击翻页
-    usage: /addinteractivetop <name>
+commands:
+
+  gameinfo:
+
+    description: 查看起床战争游戏数据
+
+    usage: /gameinfo
+

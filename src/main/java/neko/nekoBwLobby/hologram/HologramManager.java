@@ -103,6 +103,9 @@ public class HologramManager {
             Method setTouchHandlerMethod = hologramClass.getMethod("setTouchHandler", touchHandlerClass);
             setTouchHandlerMethod.setAccessible(true);
             setTouchHandlerMethod.invoke(hologram, touchHandler);
+        } catch (NoSuchMethodException e) {
+            // 新版本可能移除了setTouchHandler方法，这是正常的
+            Bukkit.getLogger().info("HolographicDisplays版本不支持触摸处理器，跳过设置");
         } catch (Exception e) {
             Bukkit.getLogger().warning("无法设置触摸处理器: " + e.getMessage());
         }
